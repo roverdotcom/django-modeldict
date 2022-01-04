@@ -3,7 +3,7 @@ import sys
 import time
 
 from django.core.cache import cache
-from django.utils import six
+import six
 
 NoValue = object()
 
