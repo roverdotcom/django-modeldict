@@ -1,9 +1,7 @@
 import random
-import sys
 import time
 
 from django.core.cache import cache
-import six
 
 NoValue = object()
 
@@ -71,15 +69,15 @@ class CachedDict(object):
 
     def iteritems(self):
         self._populate()
-        return six.iteritems(self._local_cache)
+        return self._local_cache.items()
 
     def itervalues(self):
         self._populate()
-        return six.itervalues(self._local_cache)
+        return self._local_cache.values()
 
     def iterkeys(self):
         self._populate()
-        return six.iterkeys(self._local_cache)
+        return self._local_cache.keys()
 
     def keys(self):
         return list(self.iterkeys())
@@ -220,9 +218,8 @@ class CachedDict(object):
         return self._local_cache
 
     def _refresh_versioned_cache(self):
-        # Another process from the other Python version invalidated this
-        # version's cache. Write it from the DB, but don't invalidate the other
-        # version's cache or change remote_cache_last_updated
+        # Cache key was missing/expired; refresh from DB without changing
+        # remote_cache_last_updated.
         self._local_cache = self.get_cache_data()
         self.remote_cache.set(self.remote_cache_key, self._local_cache)
 
@@ -240,16 +237,6 @@ class CachedDict(object):
             self.remote_cache_key: self._local_cache,
             self.remote_cache_last_updated_key: self._last_checked_for_remote_changes,
         }, **self._cache_set_kwargs)
-
-        # Need to invalidate the cache key for the other Python version, so that
-        # it will get rewritten by a process running that Python version.
-        other_version_no = '2' if sys.version_info[0] == 3 else '3'
-        other_version_remote_cache_key = (
-            self.remote_cache_key[:-1]
-            + other_version_no
-        )
-
-        self.remote_cache.delete(other_version_remote_cache_key)
 
     def _get_cache_data(self):
         raise NotImplementedError
