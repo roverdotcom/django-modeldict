@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 
 def dummy_view(request):
@@ -7,5 +7,5 @@ def dummy_view(request):
 
 
 urlpatterns = [
-    url(r'^$', dummy_view, name='modeldict-home'),
+    re_path(r'^$', dummy_view, name='modeldict-home'),
 ]
